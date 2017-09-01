@@ -1,2 +1,4 @@
 modules:
-      mod_offline_post: {}
+  mod_offline_post:
+    auth_token: "12345"
+    post_url: "http://api.kouno.co/v1/push"
