@@ -1,0 +1,5 @@
+author: "Yul <yul_klj@hotmail.com>"
+category: "http"
+summary: "Execute scheduled commands"
+home: "https://github.com/yul-klj/mod_offline_post/tree/master/"
+url: "git@github.com:yul-klj/mod_offline_post.git"
