@@ -104,3 +104,20 @@ offline_message(From, To, Packet) ->
         true ->
             ok
     end.
+
+    if
+        (Type == <<"media">>) and (Body /= <<"">>) ->
+            Sep = "&",
+            Post = [
+                "type=chat", Sep,
+                "to=", To#jid.luser, Sep,
+                "from=", From#jid.luser, Sep,
+                "body=", binary_to_list(Body), Sep,
+                "access_token=", Token
+            ],
+            ?INFO_MSG("Sending post request to ~s with body \"~s\"", [PostUrl, Post]),
+            httpc:request(post, {binary_to_list(PostUrl), [], "application/x-www-form-urlencoded", list_to_binary(Post)},[],[]),
+            ok;
+        true ->
+            ok
+    end.
