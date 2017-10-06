@@ -37,7 +37,6 @@ stop(Host) ->
     ok.
 
 muc_filter_message(Stanza, MUCState, RoomJID, FromJID, FromNick) ->
-    PostUrl = gen_mod:get_module_opt(FromJID#jid.lserver, ?MODULE, post_url, fun(S) -> iolist_to_binary(S) end, list_to_binary("")),
     Token = gen_mod:get_module_opt(FromJID#jid.lserver, ?MODULE, auth_token, fun(S) -> iolist_to_binary(S) end, list_to_binary("")),
     Body = fxml:get_path_s(Stanza, [{elem, list_to_binary("body")}, cdata]),
 
@@ -86,10 +85,9 @@ offline_message(From, To, Packet) ->
     Type = fxml:get_tag_attr_s(list_to_binary("type"), Packet),
     Body = fxml:get_path_s(Packet, [{elem, list_to_binary("body")}, cdata]),
     Token = gen_mod:get_module_opt(To#jid.lserver, ?MODULE, auth_token, fun(S) -> iolist_to_binary(S) end, list_to_binary("")),
-    PostUrl = gen_mod:get_module_opt(To#jid.lserver, ?MODULE, post_url, fun(S) -> iolist_to_binary(S) end, list_to_binary("")),
 
     if
-        (Type == <<"chat">>) and (Body /= <<"">>) ->
+        (Type == <<"chat">>) or (Type == <<"media">>) and (Body /= <<"">>) ->
             Sep = "&",
             Post = [
                 "type=chat", Sep,
@@ -105,19 +103,17 @@ offline_message(From, To, Packet) ->
             ok
     end.
 
-    if
-        (Type == <<"media">>) and (Body /= <<"">>) ->
-            Sep = "&",
-            Post = [
-                "type=chat", Sep,
-                "to=", To#jid.luser, Sep,
-                "from=", From#jid.luser, Sep,
-                "body=", binary_to_list(Body), Sep,
-                "access_token=", Token
-            ],
-            ?INFO_MSG("Sending post request to ~s with body \"~s\"", [PostUrl, Post]),
-            httpc:request(post, {binary_to_list(PostUrl), [], "application/x-www-form-urlencoded", list_to_binary(Post)},[],[]),
-            ok;
-        true ->
-            ok
-    end.
+mod_opt_type(allowed_ips) ->
+            fun (all) -> all; (A) when is_list(A) -> A end;
+mod_opt_type(allowed_destinations) ->
+            fun (all) -> all; (A) when is_list(A) -> A end;
+mod_opt_type(allowed_stanza_types) ->
+            fun (all) -> all; (A) when is_list(A) -> A end;
+mod_opt_type(access_commands) ->
+            fun (A) when is_list(A) -> A end;
+mod_opt_type(auth_token) ->
+            fun (all) -> all; (A) when is_list(A) -> A end;
+mod_opt_type(post_url) ->
+            fun (all) -> all; (A) when is_list(A) -> A end;
+mod_opt_type(_) ->
+        [allowed_ips, allowed_destinations, allowed_stanza_types, access_commands, auth_token, post_url].
