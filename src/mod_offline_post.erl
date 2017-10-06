@@ -87,13 +87,37 @@ offline_message(From, To, Packet) ->
     Token = gen_mod:get_module_opt(To#jid.lserver, ?MODULE, auth_token, fun(S) -> iolist_to_binary(S) end, list_to_binary("")),
 
     if
-        (Type == <<"chat">>) or (Type == <<"media">>) and (Body /= <<"">>) ->
+        (Type == <<"chat">>) and (Body /= <<"">>) ->
             Sep = "&",
             Post = [
                 "type=chat", Sep,
                 "to=", To#jid.luser, Sep,
                 "from=", From#jid.luser, Sep,
                 "body=", binary_to_list(Body), Sep,
+                "access_token=", Token
+            ],
+            ?INFO_MSG("Sending post request to ~s with body \"~s\"", [PostUrl, Post]),
+            httpc:request(post, {binary_to_list(PostUrl), [], "application/x-www-form-urlencoded", list_to_binary(Post)},[],[]),
+            ok;
+        (Type == <<"voice">>) and (Body /= <<"">>) ->
+            Sep = "&",
+            Post = [
+                "type=chat", Sep,
+                "to=", To#jid.luser, Sep,
+                "from=", From#jid.luser, Sep,
+                "body=", <<"Send you a voice clip">>, Sep,
+                "access_token=", Token
+            ],
+            ?INFO_MSG("Sending post request to ~s with body \"~s\"", [PostUrl, Post]),
+            httpc:request(post, {binary_to_list(PostUrl), [], "application/x-www-form-urlencoded", list_to_binary(Post)},[],[]),
+            ok;
+        (Type == <<"media">>) and (Body /= <<"">>) ->
+            Sep = "&",
+            Post = [
+                "type=chat", Sep,
+                "to=", To#jid.luser, Sep,
+                "from=", From#jid.luser, Sep,
+                "body=", <<"Send you an image">>, Sep,
                 "access_token=", Token
             ],
             ?INFO_MSG("Sending post request to ~s with body \"~s\"", [PostUrl, Post]),
